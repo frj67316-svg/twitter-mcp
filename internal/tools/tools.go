@@ -35,12 +35,18 @@ type ToolsManagerDependencies struct {
 
 type ToolsManager struct {
 	dependencies ToolsManagerDependencies
+	toolPrefix   string
 }
 
 func NewToolsManager(deps ToolsManagerDependencies) *ToolsManager {
 	return &ToolsManager{
 		dependencies: deps,
+		toolPrefix:   deps.AppCtx.ToolPrefix,
 	}
+}
+
+func (tm *ToolsManager) toolName(base string) string {
+	return tm.toolPrefix + base
 }
 
 // wrapWithMiddlewares applies all configured middlewares to a tool handler
@@ -54,7 +60,7 @@ func (tm *ToolsManager) wrapWithMiddlewares(handler server.ToolHandlerFunc) serv
 
 func (tm *ToolsManager) AddTools() {
 	// post_tweet - Post a new tweet
-	tool := mcp.NewTool("post_tweet",
+	tool := mcp.NewTool(tm.toolName("post_tweet"),
 		mcp.WithDescription("Post a new tweet to Twitter/X"),
 		mcp.WithString("text",
 			mcp.Required(),
@@ -67,7 +73,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolPostTweet))
 
 	// delete_tweet - Delete a tweet
-	tool = mcp.NewTool("delete_tweet",
+	tool = mcp.NewTool(tm.toolName("delete_tweet"),
 		mcp.WithDescription("Delete a tweet by its ID"),
 		mcp.WithString("tweet_id",
 			mcp.Required(),
@@ -77,7 +83,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolDeleteTweet))
 
 	// get_timeline - Get home timeline
-	tool = mcp.NewTool("get_timeline",
+	tool = mcp.NewTool(tm.toolName("get_timeline"),
 		mcp.WithDescription("Get the authenticated user's home timeline (recent tweets from followed accounts)"),
 		mcp.WithNumber("max_results",
 			mcp.Description("Maximum number of tweets to return (default: 10, max: 100)"),
@@ -86,7 +92,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolGetTimeline))
 
 	// get_mentions - Get mentions
-	tool = mcp.NewTool("get_mentions",
+	tool = mcp.NewTool(tm.toolName("get_mentions"),
 		mcp.WithDescription("Get tweets that mention the authenticated user"),
 		mcp.WithNumber("max_results",
 			mcp.Description("Maximum number of mentions to return (default: 10, max: 100)"),
@@ -95,7 +101,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolGetMentions))
 
 	// search_tweets - Search for tweets
-	tool = mcp.NewTool("search_tweets",
+	tool = mcp.NewTool(tm.toolName("search_tweets"),
 		mcp.WithDescription("Search for tweets matching a query. Supports Twitter search operators."),
 		mcp.WithString("query",
 			mcp.Required(),
@@ -108,7 +114,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolSearchTweets))
 
 	// get_trends - Get trending topics
-	tool = mcp.NewTool("get_trends",
+	tool = mcp.NewTool(tm.toolName("get_trends"),
 		mcp.WithDescription("Get trending topics for a location. Use WOEID: 1=Worldwide, 23424950=Spain, 23424977=USA, 766273=Madrid"),
 		mcp.WithNumber("woeid",
 			mcp.Description("Where On Earth ID for location (default: 1 = Worldwide)"),
@@ -117,7 +123,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolGetTrends))
 
 	// search_topics - Search for content across multiple topics
-	tool = mcp.NewTool("search_topics",
+	tool = mcp.NewTool(tm.toolName("search_topics"),
 		mcp.WithDescription("Search for trending content across multiple topics at once. Useful for exploring what's being discussed about specific subjects."),
 		mcp.WithArray("topics",
 			mcp.Required(),
@@ -130,7 +136,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolSearchTopics))
 
 	// get_topics_heat - Get heat/popularity score for topics
-	tool = mcp.NewTool("get_topics_heat",
+	tool = mcp.NewTool(tm.toolName("get_topics_heat"),
 		mcp.WithDescription("Analyze how 'hot' multiple topics are on Twitter. Returns a heat score (0-100) based on tweet volume and engagement metrics (likes, retweets, replies). Useful for comparing topic popularity."),
 		mcp.WithArray("topics",
 			mcp.Required(),
@@ -143,13 +149,13 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolGetTopicsHeat))
 
 	// get_me - Get authenticated user info
-	tool = mcp.NewTool("get_me",
+	tool = mcp.NewTool(tm.toolName("get_me"),
 		mcp.WithDescription("Get information about the authenticated Twitter user"),
 	)
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolGetMe))
 
 	// like_tweet - Like a tweet
-	tool = mcp.NewTool("like_tweet",
+	tool = mcp.NewTool(tm.toolName("like_tweet"),
 		mcp.WithDescription("Like a tweet"),
 		mcp.WithString("tweet_id",
 			mcp.Required(),
@@ -159,7 +165,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolLikeTweet))
 
 	// unlike_tweet - Remove like from a tweet
-	tool = mcp.NewTool("unlike_tweet",
+	tool = mcp.NewTool(tm.toolName("unlike_tweet"),
 		mcp.WithDescription("Remove like from a tweet"),
 		mcp.WithString("tweet_id",
 			mcp.Required(),
@@ -169,7 +175,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolUnlikeTweet))
 
 	// retweet - Retweet a tweet
-	tool = mcp.NewTool("retweet",
+	tool = mcp.NewTool(tm.toolName("retweet"),
 		mcp.WithDescription("Retweet a tweet"),
 		mcp.WithString("tweet_id",
 			mcp.Required(),
@@ -179,7 +185,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolRetweet))
 
 	// undo_retweet - Remove a retweet
-	tool = mcp.NewTool("undo_retweet",
+	tool = mcp.NewTool(tm.toolName("undo_retweet"),
 		mcp.WithDescription("Remove a retweet"),
 		mcp.WithString("tweet_id",
 			mcp.Required(),
@@ -189,7 +195,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolUndoRetweet))
 
 	// follow_user - Follow a user
-	tool = mcp.NewTool("follow_user",
+	tool = mcp.NewTool(tm.toolName("follow_user"),
 		mcp.WithDescription("Follow a Twitter user"),
 		mcp.WithString("username",
 			mcp.Required(),
@@ -199,7 +205,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolFollowUser))
 
 	// unfollow_user - Unfollow a user
-	tool = mcp.NewTool("unfollow_user",
+	tool = mcp.NewTool(tm.toolName("unfollow_user"),
 		mcp.WithDescription("Unfollow a Twitter user"),
 		mcp.WithString("username",
 			mcp.Required(),
@@ -209,7 +215,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolUnfollowUser))
 
 	// get_user_profile - Get a user's profile
-	tool = mcp.NewTool("get_user_profile",
+	tool = mcp.NewTool(tm.toolName("get_user_profile"),
 		mcp.WithDescription("Get a Twitter user's profile information including bio, followers count, etc."),
 		mcp.WithString("username",
 			mcp.Required(),
@@ -219,7 +225,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolGetUserProfile))
 
 	// get_user_tweets - Get a user's recent tweets
-	tool = mcp.NewTool("get_user_tweets",
+	tool = mcp.NewTool(tm.toolName("get_user_tweets"),
 		mcp.WithDescription("Get recent tweets from a specific user"),
 		mcp.WithString("username",
 			mcp.Required(),
@@ -232,7 +238,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolGetUserTweets))
 
 	// bookmark_tweet - Bookmark a tweet
-	tool = mcp.NewTool("bookmark_tweet",
+	tool = mcp.NewTool(tm.toolName("bookmark_tweet"),
 		mcp.WithDescription("Bookmark a tweet for later"),
 		mcp.WithString("tweet_id",
 			mcp.Required(),
@@ -242,7 +248,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolBookmarkTweet))
 
 	// remove_bookmark - Remove a bookmark
-	tool = mcp.NewTool("remove_bookmark",
+	tool = mcp.NewTool(tm.toolName("remove_bookmark"),
 		mcp.WithDescription("Remove a bookmark from a tweet"),
 		mcp.WithString("tweet_id",
 			mcp.Required(),
@@ -252,7 +258,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolRemoveBookmark))
 
 	// get_bookmarks - Get bookmarked tweets
-	tool = mcp.NewTool("get_bookmarks",
+	tool = mcp.NewTool(tm.toolName("get_bookmarks"),
 		mcp.WithDescription("Get your bookmarked tweets"),
 		mcp.WithNumber("max_results",
 			mcp.Description("Maximum number of bookmarks to return (default: 10, max: 100)"),
@@ -261,7 +267,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolGetBookmarks))
 
 	// post_thread - Post a thread of tweets
-	tool = mcp.NewTool("post_thread",
+	tool = mcp.NewTool(tm.toolName("post_thread"),
 		mcp.WithDescription("Post a thread (multiple connected tweets)"),
 		mcp.WithArray("tweets",
 			mcp.Required(),
@@ -271,7 +277,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolPostThread))
 
 	// schedule_tweet - Schedule a tweet or thread
-	tool = mcp.NewTool("schedule_tweet",
+	tool = mcp.NewTool(tm.toolName("schedule_tweet"),
 		mcp.WithDescription("Schedule a tweet or thread for later publishing. Content is always an array of strings (one element for a tweet, multiple for a thread)."),
 		mcp.WithString("type",
 			mcp.Required(),
@@ -289,7 +295,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolScheduleTweet))
 
 	// schedule_update - Update a scheduled tweet
-	tool = mcp.NewTool("schedule_update",
+	tool = mcp.NewTool(tm.toolName("schedule_update"),
 		mcp.WithDescription("Update a scheduled tweet or thread. Only provided fields will be updated."),
 		mcp.WithString("id",
 			mcp.Required(),
@@ -311,7 +317,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolScheduleUpdate))
 
 	// schedule_delete - Delete a scheduled tweet
-	tool = mcp.NewTool("schedule_delete",
+	tool = mcp.NewTool(tm.toolName("schedule_delete"),
 		mcp.WithDescription("Delete a scheduled tweet by ID"),
 		mcp.WithString("id",
 			mcp.Required(),
@@ -321,7 +327,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolScheduleDelete))
 
 	// schedule_list - List scheduled tweets
-	tool = mcp.NewTool("schedule_list",
+	tool = mcp.NewTool(tm.toolName("schedule_list"),
 		mcp.WithDescription("List scheduled tweets, optionally filtered by status"),
 		mcp.WithString("status",
 			mcp.Description("Filter by status: 'pending', 'reviewed', 'published', 'failed'. Leave empty for all."),
@@ -330,7 +336,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolScheduleList))
 
 	// schedule_get_publishable - Get tweets ready to publish
-	tool = mcp.NewTool("schedule_get_publishable",
+	tool = mcp.NewTool(tm.toolName("schedule_get_publishable"),
 		mcp.WithDescription("Get scheduled tweets that are ready to publish: reviewed, scheduled time is past, and enough time has passed since the last published tweet."),
 		mcp.WithNumber("min_hours_since_last",
 			mcp.Description("Minimum hours since last published tweet (default: 1). Use 0 to ignore."),
@@ -339,7 +345,7 @@ func (tm *ToolsManager) AddTools() {
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolScheduleGetPublishable))
 
 	// schedule_publish - Publish a scheduled tweet
-	tool = mcp.NewTool("schedule_publish",
+	tool = mcp.NewTool(tm.toolName("schedule_publish"),
 		mcp.WithDescription("Publish a specific scheduled tweet or thread by ID"),
 		mcp.WithString("id",
 			mcp.Required(),
