@@ -39,9 +39,12 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /app/twitter-mcp .
 
+# Copy the config file
+COPY config.yaml /app/config.yaml
+
 # Create non-root user
 RUN adduser -D -g '' appuser
 USER appuser
 
 ENTRYPOINT ["./twitter-mcp"]
-CMD ["-config", "/config/config.yaml"]
+CMD ["-config", "/app/config.yaml"]
