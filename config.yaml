@@ -1,0 +1,14 @@
+server:
+  name: "twitter-mcp"
+  version: "0.1.0"
+  transport:
+    type: "http"
+    http:
+      host: ":10000"
+
+twitter:
+  api_key: "$TWITTER_API_KEY"
+  api_key_secret: "$TWITTER_API_KEY_SECRET"
+  access_token: "$TWITTER_ACCESS_TOKEN"
+  access_token_secret: "$TWITTER_ACCESS_TOKEN_SECRET"
+  bearer_token: "$TWITTER_BEARER_TOKEN"
